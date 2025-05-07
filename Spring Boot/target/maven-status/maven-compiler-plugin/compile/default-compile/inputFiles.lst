@@ -1,0 +1,15 @@
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/service/CustomUserDetailsService.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/dto/RegisterRequest.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/repository/UserRepository.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/config/SecurityConfig.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/model/CareerPlan.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/config/WebConfig.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/model/Certificate.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/model/User.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/CareerPlanningApplication.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/service/UserService.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/exception/GlobalExceptionHandler.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/config/JwtTokenProvider.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/config/JwtAuthenticationFilter.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/controller/UserController.java
+/home/ubuntu/project/backend/backend/src/main/java/com/university/careerplanning/exception/ResourceNotFoundException.java

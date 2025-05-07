@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 全局样式 */
+body {
+  font-family: 'Inter', sans-serif;
+  @apply bg-gray-50 text-gray-900;
+}
+
+.page-container {
+  @apply p-6;
+}
+
+.section-title {
+  @apply text-2xl font-bold mb-4 text-blue-800;
+}
+
+.card {
+  @apply bg-white rounded-lg shadow-md p-6 mb-6;
+}
