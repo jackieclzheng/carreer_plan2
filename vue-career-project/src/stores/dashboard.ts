@@ -1,6 +1,9 @@
 // src/stores/dashboard.ts
 import { defineStore } from 'pinia';
+import { apiService } from '@/services/api';
+import axios from 'axios'; // 导入 axios 用于类型检查
 
+// 定义类型接口
 interface KeyMetric {
   id: number;
   title: string;
@@ -49,23 +52,44 @@ export const useDashboardStore = defineStore('dashboard', {
       try {
         this.loading = true;
         this.error = null;
-
-        const response = await fetch('/api/dashboard');
-        if (!response.ok) throw new Error('获取仪表盘数据失败');
-
-        const data: DashboardData = await response.json();
         
-        this.overallProgress = data.overallProgress;
-        this.currentGoal = data.currentGoal;
-        this.keyMetrics = data.keyMetrics;
-        this.skillProgress = data.skillProgress;
-        this.recentActivities = data.recentActivities;
+        // 使用相对路径，apiService 会自动添加基础 URL
+        const { data } = await apiService.get('/dashboard', {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        
+        this.updateDashboardData(data);
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '获取数据失败';
+        console.error('Dashboard store error:', error);
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '请求失败' 
+          : '获取数据失败';
         throw error;
       } finally {
         this.loading = false;
       }
+    },
+
+    // 添加更新仪表盘数据的方法
+    updateDashboardData(rawData: any) {
+      // 数据转换和验证
+      const data: DashboardData = {
+        overallProgress: Number(rawData.overallProgress) || 0,
+        currentGoal: String(rawData.currentGoal) || '',
+        keyMetrics: Array.isArray(rawData.keyMetrics) ? rawData.keyMetrics : [],
+        skillProgress: Array.isArray(rawData.skillProgress) ? rawData.skillProgress : [],
+        recentActivities: Array.isArray(rawData.recentActivities) ? rawData.recentActivities : []
+      };
+
+      // 更新 store 状态
+      this.overallProgress = data.overallProgress;
+      this.currentGoal = data.currentGoal;
+      this.keyMetrics = data.keyMetrics;
+      this.skillProgress = data.skillProgress;
+      this.recentActivities = data.recentActivities;
     },
 
     // 更新目标
@@ -74,20 +98,14 @@ export const useDashboardStore = defineStore('dashboard', {
         this.loading = true;
         this.error = null;
 
-        const response = await fetch('/api/dashboard/goal', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ goal }),
-        });
-
-        if (!response.ok) throw new Error('更新目标失败');
-
-        const data = await response.json();
+        // 使用 apiService 发送更新请求
+        const { data } = await apiService.put('/dashboard/goal', { goal });
+        
         this.currentGoal = data.goal;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '更新目标失败';
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '更新目标失败' 
+          : '更新目标失败';
         throw error;
       } finally {
         this.loading = false;
@@ -100,23 +118,20 @@ export const useDashboardStore = defineStore('dashboard', {
         this.loading = true;
         this.error = null;
 
-        const response = await fetch(`/api/dashboard/skills/${skillId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ progress }),
-        });
-
-        if (!response.ok) throw new Error('更新技能进度失败');
-
-        const updatedSkill = await response.json();
+        // 使用 apiService 发送更新请求
+        const { data } = await apiService.patch(
+          `/dashboard/skills/${skillId}`,
+          { progress }
+        );
+        
         const index = this.skillProgress.findIndex(s => s.id === skillId);
         if (index !== -1) {
-          this.skillProgress[index] = updatedSkill;
+          this.skillProgress[index] = data;
         }
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '更新技能进度失败';
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '更新技能进度失败' 
+          : '更新技能进度失败';
         throw error;
       } finally {
         this.loading = false;
@@ -129,13 +144,14 @@ export const useDashboardStore = defineStore('dashboard', {
         this.loading = true;
         this.error = null;
 
-        const response = await fetch('/api/dashboard/activities');
-        if (!response.ok) throw new Error('获取最近活动失败');
-
-        const data = await response.json();
+        // 使用 apiService 获取数据
+        const { data } = await apiService.get('/dashboard/activities');
+        
         this.recentActivities = data;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '获取最近活动失败';
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '获取最近活动失败' 
+          : '获取最近活动失败';
         throw error;
       } finally {
         this.loading = false;
@@ -148,13 +164,14 @@ export const useDashboardStore = defineStore('dashboard', {
         this.loading = true;
         this.error = null;
 
-        const response = await fetch('/api/dashboard/metrics');
-        if (!response.ok) throw new Error('获取关键指标失败');
-
-        const data = await response.json();
+        // 使用 apiService 获取数据
+        const { data } = await apiService.get('/dashboard/metrics');
+        
         this.keyMetrics = data;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '获取关键指标失败';
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '获取关键指标失败' 
+          : '获取关键指标失败';
         throw error;
       } finally {
         this.loading = false;

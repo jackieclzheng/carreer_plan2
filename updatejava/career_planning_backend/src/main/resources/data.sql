@@ -1,8 +1,14 @@
 -- 初始化测试数据
 
 -- 用户数据
-INSERT INTO users (username, password, email, major, enrollment_date) 
-VALUES ('admin', '$2a$10$XFE7nxHkCGGy5pMz8wXG8.6oWWJYhzBPVKbWbO6r5xqwTwBFbQHJu', 'admin@example.com', '计算机科学', '2023-09-01');
+-- INSERT INTO users (username, password, email, major, enrollment_date)
+-- VALUES ('admin', '$2a$10$V6NcajRhz575CPln2DM1MesJIjAKF9xyjOPNHhI5Q2hpcAzlONf6e', 'admin@example.com', '计算机科学', '2023-09-01');
+
+
+-- 只使用表中存在的列
+INSERT INTO USERS (USERNAME, PASSWORD, EMAIL, MAJOR, ENROLLMENT_DATE)
+SELECT 'admin', '$2a$10$V6NcajRhz575CPln2DM1MesJIjAKF9xyjOPNHhI5Q2hpcAzlONf6e', 'admin@example.com', 'Administration', CURRENT_DATE
+    WHERE NOT EXISTS (SELECT 1 FROM USERS WHERE USERNAME = 'admin');
 
 -- 职业数据
 INSERT INTO careers (title, description, average_salary)

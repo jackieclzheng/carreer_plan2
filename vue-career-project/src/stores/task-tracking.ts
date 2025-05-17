@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia';
+import { apiService } from '@/services/api';
+import axios from 'axios';
 
 interface Task {
   id: number;
@@ -39,14 +41,14 @@ export const useTaskTrackingStore = defineStore('taskTracking', {
       try {
         this.loading = true;
         this.error = null;
-
-        const response = await fetch('/api/tasks');
-        if (!response.ok) throw new Error('获取任务列表失败');
-
-        const data = await response.json();
+        
+        const { data } = await apiService.get('/tasks');
         this.tasks = data;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '获取任务失败';
+        console.error('获取任务失败:', error);
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '请求失败' 
+          : '获取任务失败';
         throw error;
       } finally {
         this.loading = false;
@@ -58,22 +60,15 @@ export const useTaskTrackingStore = defineStore('taskTracking', {
       try {
         this.loading = true;
         this.error = null;
-
-        const response = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(task),
-        });
-
-        if (!response.ok) throw new Error('添加任务失败');
-
-        const newTask = await response.json();
-        this.tasks.push(newTask);
-        return newTask;
+        
+        const { data } = await apiService.post('/tasks', task);
+        this.tasks.push(data);
+        return data;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '添加任务失败';
+        console.error('添加任务失败:', error);
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '请求失败' 
+          : '添加任务失败';
         throw error;
       } finally {
         this.loading = false;
@@ -85,24 +80,18 @@ export const useTaskTrackingStore = defineStore('taskTracking', {
       try {
         this.loading = true;
         this.error = null;
-
-        const response = await fetch(`/api/tasks/${id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) throw new Error('更新任务失败');
-
-        const updatedTask = await response.json();
+        
+        const { data } = await apiService.patch(`/tasks/${id}`, updates);
         const index = this.tasks.findIndex(t => t.id === id);
         if (index !== -1) {
-          this.tasks[index] = updatedTask;
+          this.tasks[index] = data;
         }
+        return data;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '更新任务失败';
+        console.error('更新任务失败:', error);
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '请求失败' 
+          : '更新任务失败';
         throw error;
       } finally {
         this.loading = false;
@@ -114,16 +103,14 @@ export const useTaskTrackingStore = defineStore('taskTracking', {
       try {
         this.loading = true;
         this.error = null;
-
-        const response = await fetch(`/api/tasks/${id}`, {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) throw new Error('删除任务失败');
-
+        
+        await apiService.delete(`/tasks/${id}`);
         this.tasks = this.tasks.filter(task => task.id !== id);
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '删除任务失败';
+        console.error('删除任务失败:', error);
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '请求失败' 
+          : '删除任务失败';
         throw error;
       } finally {
         this.loading = false;
@@ -135,24 +122,18 @@ export const useTaskTrackingStore = defineStore('taskTracking', {
       try {
         this.loading = true;
         this.error = null;
-
-        const response = await fetch(`/api/tasks/${id}/progress`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ progress }),
-        });
-
-        if (!response.ok) throw new Error('更新进度失败');
-
-        const updatedTask = await response.json();
+        
+        const { data } = await apiService.patch(`/tasks/${id}/progress`, { progress });
         const index = this.tasks.findIndex(t => t.id === id);
         if (index !== -1) {
-          this.tasks[index] = updatedTask;
+          this.tasks[index] = data;
         }
+        return data;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '更新进度失败';
+        console.error('更新进度失败:', error);
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '请求失败' 
+          : '更新进度失败';
         throw error;
       } finally {
         this.loading = false;
@@ -164,26 +145,20 @@ export const useTaskTrackingStore = defineStore('taskTracking', {
       try {
         this.loading = true;
         this.error = null;
-
-        const response = await fetch('/api/tasks/batch-update', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ ids, status }),
-        });
-
-        if (!response.ok) throw new Error('批量更新状态失败');
-
-        const updatedTasks = await response.json();
-        updatedTasks.forEach(updatedTask => {
+        
+        const { data } = await apiService.patch('/tasks/batch-update', { ids, status });
+        data.forEach(updatedTask => {
           const index = this.tasks.findIndex(t => t.id === updatedTask.id);
           if (index !== -1) {
             this.tasks[index] = updatedTask;
           }
         });
+        return data;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : '批量更新状态失败';
+        console.error('批量更新状态失败:', error);
+        this.error = axios.isAxiosError(error) 
+          ? error.message || '请求失败' 
+          : '批量更新状态失败';
         throw error;
       } finally {
         this.loading = false;

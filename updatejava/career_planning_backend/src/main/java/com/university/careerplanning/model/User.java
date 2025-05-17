@@ -97,5 +97,17 @@ public class User {
     public void setCertificates(List<Certificate> certificates) {
         this.certificates = certificates;
     }
+
+    @Column(length = 50)
+    private String role = "ROLE_USER"; // 默认角色
+
+    // Getter 和 Setter
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 }
 

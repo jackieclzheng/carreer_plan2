@@ -8,10 +8,27 @@
       </CardHeader>
       <CardContent>
         <div class="flex mb-4">
-          <Input 
+          <!-- <Input 
             placeholder="输入职业名称、描述或技能" 
             v-model="searchTerm"
             class="mr-2"
+            :disabled="loading"
+          /> -->
+
+          <!-- 检查这一行的v-model绑定 -->
+          <!-- <Input 
+            placeholder="输入职业名称、描述或技能" 
+            v-model="searchTerm"  
+            class="mr-2"
+            :disabled="loading"
+          /> -->
+
+          <!-- 替换原来的Input组件 -->
+          <input
+            type="text"
+            placeholder="输入职业名称、描述或技能"
+            v-model="searchTerm"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md mr-2"
             :disabled="loading"
           />
           <Button 
@@ -81,10 +98,29 @@ const loading = ref(false);
 const error = ref('');
 
 // 搜索方法
+// const search = async () => {
+//   try {
+//     loading.value = true;
+//     error.value = '';
+//     await careerSearchStore.searchCareers(searchTerm.value);
+//   } catch (e) {
+//     error.value = '搜索失败，请重试';
+//     console.error(e);
+//   } finally {
+//     loading.value = false;
+//   }
+// };
+
+// 检查搜索方法中是否正确传递searchTerm值
 const search = async () => {
   try {
     loading.value = true;
     error.value = '';
+    
+    // 添加调试日志检查searchTerm值
+    console.log('搜索词:', searchTerm.value);
+    
+    // 确保这里使用了searchTerm.value
     await careerSearchStore.searchCareers(searchTerm.value);
   } catch (e) {
     error.value = '搜索失败，请重试';

@@ -64,24 +64,69 @@ const password = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
 
+// const handleLogin = async () => {
+//   try {
+//     if (!username.value || !password.value) {
+//       errorMessage.value = '请输入用户名和密码'
+//       return
+//     }
+
+//     loading.value = true
+//     await authStore.login({
+//       username: username.value,
+//       password: password.value
+//     })
+    
+//     router.push('/dashboard')
+//   } catch (error) {
+//     errorMessage.value = error instanceof Error ? error.message : '登录失败，请重试'
+//   } finally {
+//     loading.value = false
+//   }
+// }
+
+// const handleLogin = async () => {
+//   try {
+//     if (!username.value || !password.value) {
+//       errorMessage.value = '请输入用户名和密码'
+//       return
+//     }
+
+//     loading.value = true
+//     // 修改这里，传递两个独立参数
+//     const result = await authStore.login(username.value, password.value)
+//     console.log('登录结果:', result)
+
+//     window.location.href = '/dashboard'
+    
+//     router.push('/dashboard')
+//   } catch (error) {
+//     errorMessage.value = error instanceof Error ? error.message : '登录失败，请重试'
+//   } finally {
+//     loading.value = false
+//   }
+// }
+
 const handleLogin = async () => {
   try {
     if (!username.value || !password.value) {
-      errorMessage.value = '请输入用户名和密码'
-      return
+      errorMessage.value = '请输入用户名和密码';
+      return;
     }
 
-    loading.value = true
-    await authStore.login({
-      username: username.value,
-      password: password.value
-    })
+    loading.value = true;
+    const result = await authStore.login(username.value, password.value);
     
-    router.push('/dashboard')
+    if (result) {
+      // 登录成功后使用 Vue Router 导航
+      router.push('/dashboard');
+    } else {
+      errorMessage.value = authStore.error || '登录失败，请重试';
+    }
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : '登录失败，请重试'
+    errorMessage.value = error instanceof Error ? error.message : '登录失败，请重试';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>

@@ -134,9 +134,11 @@ const error = ref('');
 const fetchDashboardData = async () => {
   try {
     loading.value = true;
+    error.value = ''; // 重置错误信息
     await dashboardStore.fetchDashboardData();
   } catch (e) {
-    error.value = '获取数据失败，请刷新重试';
+    console.error('Dashboard data fetch error:', e);
+    error.value = e instanceof Error ? e.message : '获取数据失败，请刷新重试';
   } finally {
     loading.value = false;
   }
