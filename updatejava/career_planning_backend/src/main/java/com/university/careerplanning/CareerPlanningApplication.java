@@ -1,4 +1,3 @@
-
 package com.university.careerplanning;
 
 import org.springframework.boot.SpringApplication;
@@ -10,4 +9,3 @@ public class CareerPlanningApplication {
         SpringApplication.run(CareerPlanningApplication.class, args);
     }
 }
-
