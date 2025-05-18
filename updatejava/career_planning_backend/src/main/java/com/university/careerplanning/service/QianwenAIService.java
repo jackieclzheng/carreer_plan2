@@ -1,5 +1,6 @@
 package com.university.careerplanning.service;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.university.careerplanning.dto.*;
 import lombok.Data;
@@ -12,8 +13,27 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
+
+// Apache HttpClient 相关包
+//import org.apache.http.HttpResponse;
+//import org.apache.http.client.methods.HttpPost;
+//import org.apache.http.entity.ContentType;
+//import org.apache.http.entity.StringEntity;
+//import org.apache.http.impl.client.CloseableHttpClient;
+//import org.apache.http.impl.client.HttpClients;
+//import org.apache.http.util.EntityUtils;
+
+// 其他必要的包
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class QianwenAIService {
@@ -148,50 +168,283 @@ public class QianwenAIService {
             }
 
             // 构建请求通义千问API的参数
-            QianwenRequest qianwenRequest = new QianwenRequest();
-            qianwenRequest.setModel(modelName);
+//            QianwenRequest qianwenRequest = new QianwenRequest();
+//            qianwenRequest.setModel(modelName);
+
 
             // 构建提示词
-            String prompt = buildPrompt(request);
-            qianwenRequest.setInput(new QianwenInput(prompt));
+//            String prompt = buildPrompt(request);
+//            qianwenRequest.setInput(new QianwenInput(prompt));
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", modelName);
+            requestBody.put("input", Map.of("prompt", buildPrompt(request)));
+            requestBody.put("task", "text_generation");  // 确保这个字段存在
+            requestBody.put("parameters", Map.of(
+                    "temperature", 0.4,
+                    "max_tokens", 2000,
+                    "top_p", 0.8
+            ));
 
             // 配置通义千问API请求头
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + qianwenApiKey);
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setContentType(MediaType.APPLICATION_JSON);
+//            headers.set("Authorization", "Bearer " + qianwenApiKey);
+//
+//            logger.info("发送请求到通义千问API");
+//            // 发送请求到通义千问API
+////            HttpEntity<QianwenRequest> requestEntity = new HttpEntity<>(qianwenRequest, headers);
+//            // 发送请求到通义千问API
+//            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+//            // 使用正确结构的requestBody创建HttpEntity
+////            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+//
+//            logger.info("发送请求到通义千问API，requestEntity请求体: {}", objectMapper.writeValueAsString(requestEntity));
+//            logger.info("发送请求到通义千问API，requestBody请求体: {}", objectMapper.writeValueAsString(requestBody));
+//
+////            try {
+////                String requestJson = objectMapper.writeValueAsString(qianwenRequest);
+////                logger.info("发送请求到通义千问API，请求体: {}", requestJson);
+////            } catch (Exception e) {
+////                logger.error("序列化请求体失败", e);
+////            }
+//
+//            QianwenResponse qianwenResponse = restTemplate.postForObject(
+//                    qianwenApiUrl,
+//                    requestEntity,
+////                    requestBody,
+//                    QianwenResponse.class
+//            );
 
-            logger.info("发送请求到通义千问API");
-            // 发送请求到通义千问API
-            HttpEntity<QianwenRequest> requestEntity = new HttpEntity<>(qianwenRequest, headers);
-            QianwenResponse qianwenResponse = restTemplate.postForObject(
-                    qianwenApiUrl,
-                    requestEntity,
-                    QianwenResponse.class
-            );
 
-            // 解析通义千问的响应获取生成的职业规划
-            if (qianwenResponse != null && qianwenResponse.getOutput() != null) {
-                String generatedPlan = qianwenResponse.getOutput().getText();
-                logger.info("成功获取通义千问响应，正在解析");
+            // 使用HttpClient直接发送请求
+//            CloseableHttpClient httpClient = HttpClients.createDefault();
+//            HttpPost httpPost = new HttpPost(qianwenApiUrl);
+//
+//            // 设置请求头
+//            httpPost.setHeader("Content-Type", "application/json");
+//            httpPost.setHeader("Authorization", "Bearer " + qianwenApiKey);
+//
+//
+//            // 序列化请求体为JSON字符串
+//            String json = objectMapper.writeValueAsString(requestBody);
+//            logger.info("使用HttpClient发送请求，请求体: {}", json);
+//
+//            // 设置请求体
+//            StringEntity entity = new StringEntity(json, ContentType.APPLICATION_JSON);
+//            httpPost.setEntity(entity);
+//
+//            // 执行请求
+//            HttpResponse response = httpClient.execute(httpPost);
+//            int statusCode = response.getStatusLine().getStatusCode();
+//            String responseBody = EntityUtils.toString(response.getEntity());
+//
+//            logger.info("API响应状态码: {}", statusCode);
+//            logger.info("API响应内容: {}", responseBody);
+//
+//            // 解析响应
+//            if (statusCode == 200) {
+//                return objectMapper.readValue(responseBody, QianwenResponse.class);
+//            } else {
+//                logger.error("API错误: {}", responseBody);
+//                throw new RuntimeException("API调用失败: " + responseBody);
+//            }
 
-                // 尝试将文本解析为JSON并转换为CareerPlanResponse对象
-                CareerPlanResponse plan = parseGeneratedPlan(generatedPlan, request);
 
-                // 保存用户的规划以便后续更新
-                String userId = "user-" + System.currentTimeMillis(); // 这里应该使用实际的用户ID
-                userPlans.put(userId, plan);
+//            import java.net.URI;
+//import java.net.http.HttpClient;
+//import java.net.http.HttpRequest;
+//import java.net.http.HttpResponse;
+//import java.time.Duration;
 
-                // 存入缓存
-                responseCache.put(cacheKey, plan);
+            // 创建HttpClient
+            HttpClient httpClient = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
 
-                return plan;
+            // 在try块内，现有代码前添加这段
+//            String hardcodedJson = "{\n" +
+//                    "    \"model\": \"qwen-plus\",\n" +
+//                    "    \"input\": {\n" +
+//                    "        \"prompt\": \"简单测试\"\n" +
+//                    "    },\n" +
+//                    "    \"task\": \"text_generation\",\n" +
+//                    "    \"parameters\": {\n" +
+//                    "        \"temperature\": 0.4,\n" +
+//                    "        \"max_tokens\": 100,\n" +
+//                    "        \"top_p\": 0.8\n" +
+//                    "    }\n" +
+//                    "}";
+//
+//            logger.info("使用硬编码JSON测试API: {}", hardcodedJson);
+
+            String qianwenApiUrl = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation";
+
+            // 创建请求
+            HttpRequest requestNative = HttpRequest.newBuilder()
+                    .uri(URI.create(qianwenApiUrl))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + qianwenApiKey)
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody)))
+                    .build();
+
+            // 或者如果您在代码中直接设置这个URL，请修改为
+//            String qianwenApiUrl = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation";
+
+            // 创建请求
+//            HttpRequest hardcodedRequest = HttpRequest.newBuilder()
+//                    .uri(URI.create(qianwenApiUrl))
+//                    .header("Content-Type", "application/json")
+//                    .header("Authorization", "Bearer " + qianwenApiKey)
+//                    .POST(HttpRequest.BodyPublishers.ofString(hardcodedJson))
+//                    .build();
+
+            // 发送请求并获取响应
+            HttpResponse<String> response = httpClient.send(requestNative, HttpResponse.BodyHandlers.ofString());
+            int statusCode = response.statusCode();
+            String responseBody = response.body();
+
+            logger.info("API响应状态码: {}", statusCode);
+            logger.info("API响应内容: {}", responseBody);
+
+            // 发送请求并获取响应
+//            HttpResponse<String> hardcodedResponse = httpClient.send(hardcodedRequest, HttpResponse.BodyHandlers.ofString());
+//            int hardcodedStatusCode = hardcodedResponse.statusCode();
+//            String hardcodedResponseBody = hardcodedResponse.body();
+//
+//            logger.info("硬编码请求API响应状态码: {}", hardcodedStatusCode);
+//            logger.info("硬编码请求API响应内容: {}", hardcodedResponseBody);
+
+            // 如果硬编码测试成功，则证明问题在您的JSON生成中
+//            if (hardcodedStatusCode == 200) {
+//                logger.info("硬编码请求成功，问题在于您的请求体构造");
+//            }
+
+
+            // 解析响应
+//            QianwenResponse qianwenResponse;
+//            if (statusCode == 200) {
+////                return objectMapper.readValue(responseBody, QianwenResponse.class);
+//                qianwenResponse = objectMapper.readValue(responseBody, QianwenResponse.class);
+//                // 从QianwenResponse中提取文本内容
+//                String generatedText = qianwenResponse.getOutput().getText();
+//
+//                // 解析生成的文本为CareerPlanResponse
+//                return parseGeneratedPlan(generatedText, request);
+//            } else {
+//                logger.error("API错误: {}", responseBody);
+//                throw new RuntimeException("API调用失败: " + responseBody);
+//            }
+//
+//            // 解析通义千问的响应获取生成的职业规划
+////            QianwenResponse qianwenResponse = new QianwenResponse();
+//            if (qianwenResponse != null && qianwenResponse.getOutput() != null) {
+//                String generatedPlan = qianwenResponse.getOutput().getText();
+//                logger.info("成功获取通义千问响应，正在解析");
+//
+//                // 尝试将文本解析为JSON并转换为CareerPlanResponse对象
+//                CareerPlanResponse plan = parseGeneratedPlan(generatedPlan, request);
+//
+//                // 保存用户的规划以便后续更新
+//                String userId = "user-" + System.currentTimeMillis(); // 这里应该使用实际的用户ID
+//                userPlans.put(userId, plan);
+//
+//                // 存入缓存
+//                responseCache.put(cacheKey, plan);
+//
+//                return plan;
+//            } else {
+//                logger.warn("通义千问响应为空或无效");
+//                // 返回备用规划数据
+//                CareerPlanResponse fallbackPlan = generateFallbackPlan(request);
+//                responseCache.put(cacheKey, fallbackPlan);
+//                return fallbackPlan;
+//            }
+
+            QianwenResponse qianwenResponse = null;
+
+            if (statusCode == 200) {
+                try {
+                    // 解析响应JSON
+                    qianwenResponse = objectMapper.readValue(responseBody, QianwenResponse.class);
+
+                    // 检查响应是否有效
+                    if (qianwenResponse != null && qianwenResponse.getOutput() != null) {
+                        // 从QianwenResponse中提取文本内容
+                        String generatedText = qianwenResponse.getOutput().getText();
+                        logger.info("成功获取通义千问响应，正在解析");
+
+                        // 解析生成的文本为CareerPlanResponse对象
+                        CareerPlanResponse plan = parseGeneratedPlan(generatedText, request);
+
+                        // 保存用户的规划以便后续更新
+                        String userId = "user-" + System.currentTimeMillis(); // 这里应该使用实际的用户ID
+                        userPlans.put(userId, plan);
+
+                        // 存入缓存
+                        String cacheKeyNative = generateCacheKey(request);
+                        responseCache.put(cacheKeyNative, plan);
+
+                        return plan;
+                    } else {
+                        logger.warn("通义千问响应为空或无效");
+                        // 返回备用规划数据
+                        return generateFallbackPlan(request);
+                    }
+                } catch (Exception e) {
+                    logger.error("解析通义千问响应失败", e);
+                    // 返回备用规划数据
+                    return generateFallbackPlan(request);
+                }
             } else {
-                logger.warn("通义千问响应为空或无效");
-                // 返回备用规划数据
-                CareerPlanResponse fallbackPlan = generateFallbackPlan(request);
-                responseCache.put(cacheKey, fallbackPlan);
-                return fallbackPlan;
+                logger.error("API错误: {}", responseBody);
+                // 在出错时也返回备用计划，而不是抛出异常
+                // throw new RuntimeException("API调用失败: " + responseBody);
+                return generateFallbackPlan(request);
             }
+
+//            QianwenResponse qianwenResponse = null;
+////
+//            if (hardcodedStatusCode == 200) {
+//                try {
+//                    // 解析响应JSON
+////                    qianwenResponse = objectMapper.readValue(hardcodedResponse, QianwenResponse.class);
+//                    qianwenResponse = objectMapper.readValue(hardcodedResponseBody, QianwenResponse.class);
+//
+//                    // 检查响应是否有效
+//                    if (qianwenResponse != null && qianwenResponse.getOutput() != null) {
+//                        // 从QianwenResponse中提取文本内容
+//                        String generatedText = qianwenResponse.getOutput().getText();
+//                        logger.info("成功获取通义千问响应，正在解析");
+//
+//                        // 解析生成的文本为CareerPlanResponse对象
+//                        CareerPlanResponse plan = parseGeneratedPlan(generatedText, request);
+//
+//                        // 保存用户的规划以便后续更新
+//                        String userId = "user-" + System.currentTimeMillis(); // 这里应该使用实际的用户ID
+//                        userPlans.put(userId, plan);
+//
+//                        // 存入缓存
+//                        String cacheKeyNative = generateCacheKey(request);
+//                        responseCache.put(cacheKeyNative, plan);
+//
+//                        return plan;
+//                    } else {
+//                        logger.warn("通义千问响应为空或无效");
+//                        // 返回备用规划数据
+//                        return generateFallbackPlan(request);
+//                    }
+//                } catch (Exception e) {
+//                    logger.error("解析通义千问响应失败", e);
+//                    // 返回备用规划数据
+//                    return generateFallbackPlan(request);
+//                }
+//            } else {
+//                logger.error("API错误: {}", hardcodedResponse);
+//                // 在出错时也返回备用计划，而不是抛出异常
+//                // throw new RuntimeException("API调用失败: " + responseBody);
+//                return generateFallbackPlan(request);
+//            }
         } catch (Exception e) {
             logger.error("调用通义千问API失败", e);
             // 返回备用规划数据
@@ -1319,12 +1572,26 @@ public class QianwenAIService {
     }
 
     // 通义千问API请求和响应类
+//    @Data
+//    public static class QianwenRequest {
+//        private String model;
+//        private QianwenInput input;
+//        private Map<String, Object> parameters = Map.of(
+//                "temperature", 0.4,  // 降低温度以获得更一致的输出
+//                "max_tokens", 2000,
+//                "top_p", 0.8
+//        );
+//    }
+
     @Data
     public static class QianwenRequest {
         private String model;
         private QianwenInput input;
+
+        @JsonProperty("task") // 添加这个注解确保字段被序列化
+        private String task = "text_generation"; // 添加这一行，设置默认值
         private Map<String, Object> parameters = Map.of(
-                "temperature", 0.4,  // 降低温度以获得更一致的输出
+                "temperature", 0.4,
                 "max_tokens", 2000,
                 "top_p", 0.8
         );
